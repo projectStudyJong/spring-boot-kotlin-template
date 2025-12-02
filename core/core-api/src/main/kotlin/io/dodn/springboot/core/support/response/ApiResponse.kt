@@ -3,7 +3,7 @@ package io.dodn.springboot.core.support.response
 import io.dodn.springboot.core.support.error.ErrorMessage
 import io.dodn.springboot.core.support.error.ErrorType
 
-data class ApiResponse<T> private constructor(
+class ApiResponse<T> private constructor(
     val result: ResultType,
     val data: T? = null,
     val error: ErrorMessage? = null,
