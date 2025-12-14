@@ -1,8 +1,5 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     kotlin("jvm")
-    kotlin("kapt")
     kotlin("plugin.spring") apply false
     kotlin("plugin.jpa") apply false
     id("org.springframework.boot") apply false
@@ -10,8 +7,6 @@ plugins {
     id("org.asciidoctor.jvm.convert") apply false
     id("org.jlleitschuh.gradle.ktlint") apply false
 }
-
-java.sourceCompatibility = JavaVersion.valueOf("VERSION_${property("javaVersion")}")
 
 allprojects {
     group = "${property("projectGroup")}"
@@ -24,7 +19,6 @@ allprojects {
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "org.jetbrains.kotlin.kapt")
     apply(plugin = "org.jetbrains.kotlin.plugin.spring")
     apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
     apply(plugin = "org.springframework.boot")
@@ -40,28 +34,32 @@ subprojects {
 
     dependencies {
         implementation("org.jetbrains.kotlin:kotlin-reflect")
-        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-        testImplementation("org.springframework.boot:spring-boot-starter-test")
-        testImplementation("com.ninja-squad:springmockk:${property("springMockkVersion")}")
         annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-        kapt("org.springframework.boot:spring-boot-configuration-processor")
+        testImplementation("org.springframework.boot:spring-boot-test")
+        testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+        testImplementation("org.assertj:assertj-core")
+        testImplementation("com.ninja-squad:springmockk:${property("springMockkVersion")}")
     }
 
-    tasks.getByName("bootJar") {
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of("${property("javaVersion")}")
+        }
+    }
+
+    kotlin {
+        compilerOptions {
+            freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+        }
+    }
+
+    tasks.named<Jar>("bootJar").configure {
         enabled = false
     }
 
-    tasks.getByName("jar") {
+    tasks.named<Jar>("jar").configure {
         enabled = true
-    }
-
-    java.sourceCompatibility = JavaVersion.valueOf("VERSION_${property("javaVersion")}")
-    tasks.withType<KotlinCompile> {
-        kotlinOptions {
-            freeCompilerArgs = listOf("-Xjsr305=strict")
-            jvmTarget = "${project.property("javaVersion")}"
-        }
     }
 
     tasks.test {
@@ -70,35 +68,51 @@ subprojects {
         }
     }
 
-    tasks.register<Test>("unitTest") {
-        group = "verification"
-        useJUnitPlatform {
-            excludeTags("develop", "context", "restdocs")
+    testing {
+        suites {
+            named<JvmTestSuite>("test") {
+                targets {
+                    register("unitTest") {
+                        testTask.configure {
+                            group = "verification"
+                            useJUnitPlatform {
+                                excludeTags("develop", "context", "restdocs")
+                            }
+                        }
+                    }
+
+                    register("contextTest") {
+                        testTask.configure {
+                            group = "verification"
+                            useJUnitPlatform {
+                                includeTags("context")
+                            }
+                        }
+                    }
+
+                    register("restDocsTest") {
+                        testTask.configure {
+                            group = "verification"
+                            useJUnitPlatform {
+                                includeTags("restdocs")
+                            }
+                        }
+                    }
+
+                    register("developTest") {
+                        testTask.configure {
+                            group = "verification"
+                            useJUnitPlatform {
+                                includeTags("develop")
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
-    tasks.register<Test>("contextTest") {
-        group = "verification"
-        useJUnitPlatform {
-            includeTags("context")
-        }
-    }
-
-    tasks.register<Test>("restDocsTest") {
-        group = "verification"
-        useJUnitPlatform {
-            includeTags("restdocs")
-        }
-    }
-
-    tasks.register<Test>("developTest") {
-        group = "verification"
-        useJUnitPlatform {
-            includeTags("develop")
-        }
-    }
-
-    tasks.getByName("asciidoctor") {
+    tasks.named("asciidoctor").configure {
         dependsOn("restDocsTest")
     }
 }

@@ -1,6 +1,6 @@
 package io.dodn.springboot.core.support.error
 
-data class ErrorMessage private constructor(
+class ErrorMessage private constructor(
     val code: String,
     val message: String,
     val data: Any? = null,

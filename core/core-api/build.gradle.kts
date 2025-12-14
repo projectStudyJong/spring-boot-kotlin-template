@@ -1,8 +1,8 @@
-tasks.getByName("bootJar") {
+tasks.named<Jar>("bootJar").configure {
     enabled = true
 }
 
-tasks.getByName("jar") {
+tasks.named<Jar>("jar").configure {
     enabled = false
 }
 
@@ -15,5 +15,5 @@ dependencies {
 
     testImplementation(project(":tests:api-docs"))
 
-    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
 }
