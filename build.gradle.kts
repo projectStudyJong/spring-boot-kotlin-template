@@ -68,31 +68,47 @@ subprojects {
         }
     }
 
-    tasks.register<Test>("unitTest") {
-        group = "verification"
-        useJUnitPlatform {
-            excludeTags("develop", "context", "restdocs")
-        }
-    }
+    testing {
+        suites {
+            named<JvmTestSuite>("test") {
+                targets {
+                    register("unitTest") {
+                        testTask.configure {
+                            group = "verification"
+                            useJUnitPlatform {
+                                excludeTags("develop", "context", "restdocs")
+                            }
+                        }
+                    }
 
-    tasks.register<Test>("contextTest") {
-        group = "verification"
-        useJUnitPlatform {
-            includeTags("context")
-        }
-    }
+                    register("contextTest") {
+                        testTask.configure {
+                            group = "verification"
+                            useJUnitPlatform {
+                                includeTags("context")
+                            }
+                        }
+                    }
 
-    tasks.register<Test>("restDocsTest") {
-        group = "verification"
-        useJUnitPlatform {
-            includeTags("restdocs")
-        }
-    }
+                    register("restDocsTest") {
+                        testTask.configure {
+                            group = "verification"
+                            useJUnitPlatform {
+                                includeTags("restdocs")
+                            }
+                        }
+                    }
 
-    tasks.register<Test>("developTest") {
-        group = "verification"
-        useJUnitPlatform {
-            includeTags("develop")
+                    register("developTest") {
+                        testTask.configure {
+                            group = "verification"
+                            useJUnitPlatform {
+                                includeTags("develop")
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
